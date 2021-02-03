@@ -49,18 +49,20 @@
 	 * @name Important system processes
 	 */
 	/**@{*/
-	#define IDLE (&proctab[0]) /**< idle process. */
-	#define INIT (&proctab[1]) /**< init process. */
+	#define IDLE (&idle) /**< idle process. */
+	#define INIT (&queues[0][0]) /**< init process. */
 	/**@}*/
 	
 	/**
-	 * @name Process table boundaries
+	 * @name Process queues
 	 */
 	/**@{*/
-	#define FIRST_PROC ((&proctab[1]))           /**< First process. */
-	#define LAST_PROC ((&proctab[PROC_MAX - 1])) /**< Last process.  */
+	#define FIRST_QUEUE 0
+	#define SECOND_QUEUE 1
+	#define THIRD_QUEUE 2
+	#define FOURTH_QUEUE 3
 	/**@}*/
-	
+
 	/**
 	 * @name Process flags
 	 */
@@ -280,11 +282,17 @@
 	
 	/* Forward definitions. */
 	EXTERN int shutting_down;
-	EXTERN struct process proctab[PROC_MAX];
+	EXTERN struct process idle;
 	EXTERN struct process *curr_proc;
 	EXTERN struct process *last_proc;
+	EXTERN struct process queues[4][PROC_MAX];
 	EXTERN pid_t next_pid;
 	EXTERN unsigned nprocs;
+	EXTERN unsigned nq1;
+	EXTERN unsigned nq2;
+	EXTERN unsigned nq3;
+	EXTERN unsigned nq4;
+
 
 #endif /* _ASM_FILE */
 

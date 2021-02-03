@@ -42,9 +42,14 @@ EXTERN struct pde idle_pgdir[];
 PUBLIC char idle_kstack[KSTACK_SIZE];
 
 /**
- * @brief Process table.
+ * @brief Idle process
  */
-PUBLIC struct process proctab[PROC_MAX];
+PUBLIC struct process idle;
+
+/**
+ * @brief Queues scheduler.
+ */
+PUBLIC struct process queues[4][PROC_MAX];
 
 /**
  * @brief Current running process. 
@@ -67,16 +72,29 @@ PUBLIC pid_t next_pid = 0;
 PUBLIC unsigned nprocs = 0;
 
 /**
+ * @brief Current number of processes in a queue
+ */
+PUBLIC unsigned nq1 = 0;
+PUBLIC unsigned nq2 = 0;
+PUBLIC unsigned nq3 = 0;
+PUBLIC unsigned nq4 = 0;
+
+
+/**
  * @brief Initializes the process management system.
  */
 PUBLIC void pm_init(void)
 {	
-	int i;             /* Loop index.      */
+	int i, j;
 	struct process *p; /* Working process. */
 	
 	/* Initialize the process table. */
-	for (p = FIRST_PROC; p <= LAST_PROC; p++)
-		p->flags = 0, p->state = PROC_DEAD;
+	for(i = 0; i < 4; i++)
+		for (j = 0; j < PROC_MAX; j++)
+		{
+			p = &queues[i][j];
+			p->flags = 0, p->state = PROC_DEAD;
+		}
 		
 	/* Handcraft init process. */
 	IDLE->cr3 = (dword_t)idle_pgdir;

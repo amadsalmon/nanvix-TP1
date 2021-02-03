@@ -31,7 +31,7 @@ PRIVATE struct process *chain = NULL;
  */
 PUBLIC pid_t sys_wait(int *stat_loc)
 {
-	int sig;
+	int sig, i, j;
 	pid_t pid;
 	struct process *p;
 
@@ -46,52 +46,53 @@ repeat:
 		return (-ECHILD);
 
 	/* Look for child processes. */
-	for (p = FIRST_PROC; p <= LAST_PROC; p++)
-	{
-		/* Skip invalid processes. */
-		if (!IS_VALID(p))
-			continue;
-			
-		 /* Found. */
-		if (p->father == curr_proc)
-		{
-			/* Stopped. */
-			if (p->state == PROC_STOPPED)
+	for(i = 0; i < 4; i++)
+			for (j = 0; j < PROC_MAX; j++){
+				p = &queues[i][j];	
+			/* Skip invalid processes. */
+			if (!IS_VALID(p))
+				continue;
+				
+			/* Found. */
+			if (p->father == curr_proc)
 			{
-				/* Already reported. */
-				if (p->status)
-					continue;
+				/* Stopped. */
+				if (p->state == PROC_STOPPED)
+				{
+					/* Already reported. */
+					if (p->status)
+						continue;
+					
+					p->status = 1 << 10;
+					
+					/* Get exit code. */
+					if (stat_loc != NULL)
+						*stat_loc = p->status;
+					
+					return (p->pid);
+				}
 				
-				p->status = 1 << 10;
-				
-				/* Get exit code. */
-				if (stat_loc != NULL)
-					*stat_loc = p->status;
-				
-				return (p->pid);
-			}
-			
-			/* Terminated. */
-			else if (p->state == PROC_ZOMBIE)
-			{
-				/* Get exit code. */
-				if (stat_loc != NULL)
-					*stat_loc = p->status;
-				
-				/* 
-				 * Get information from child
-				 * process before burying it.
-				 */
-				pid = p->pid;
-				curr_proc->cutime += p->utime;
-				curr_proc->cktime += p->ktime;
+				/* Terminated. */
+				else if (p->state == PROC_ZOMBIE)
+				{
+					/* Get exit code. */
+					if (stat_loc != NULL)
+						*stat_loc = p->status;
+					
+					/* 
+					* Get information from child
+					* process before burying it.
+					*/
+					pid = p->pid;
+					curr_proc->cutime += p->utime;
+					curr_proc->cktime += p->ktime;
 
-				/* Bury child process. */
-				bury(p);
-				
-				return (pid);
+					/* Bury child process. */
+					bury(p);
+					
+					return (pid);
+				}
 			}
-		}
 	}
 
 	sleep(&chain, PRIO_USER);

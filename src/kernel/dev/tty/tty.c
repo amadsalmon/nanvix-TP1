@@ -51,15 +51,19 @@ PRIVATE struct tty *active = &tty;
  */
 PRIVATE void tty_signal(int sig)
 {
-	for (struct process *p = FIRST_PROC; p <= LAST_PROC; p++)
-	{
-		/* Skip invalid processes. */
-		if (!IS_VALID(p))
-			continue;
-			
-		if (active->pgrp == p->pgrp)
-			sndsig(p, sig);
-	}
+	
+	struct process *p;
+	for(int i = 0; i < 4; i++)
+		for (int j = 0; j < PROC_MAX; j++)
+		{
+			p = &queues[i][j];
+			/* Skip invalid processes. */
+			if (!IS_VALID(p))
+				continue;
+				
+			if (active->pgrp == p->pgrp)
+				sndsig(p, sig);
+		}
 }
 
 /**

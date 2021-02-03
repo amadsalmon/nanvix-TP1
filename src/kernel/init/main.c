@@ -143,11 +143,13 @@ PUBLIC void kmain(void)
 		if (shutting_down)
 		{
 			/* Bury zombie processes. */
-			for (p = FIRST_PROC; p <= LAST_PROC; p++)
-			{
+			for(int i = 0; i < 4; i++)
+				for (int j = 0; j < PROC_MAX; j++)
+				{
+				p = &queues[i][j];
 				if ((p->state == PROC_ZOMBIE) && (p->father == curr_proc))
 					bury(p);
-			}
+				}
 			
 			/* Halt system. */
 			if (nprocs == 1)

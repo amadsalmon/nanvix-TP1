@@ -39,6 +39,7 @@
 PUBLIC int sys_kill(pid_t pid, int sig)
 {
 	int err;
+	int i, j;
 	struct process *p;
 	
 	/* Invalid signal. */
@@ -51,48 +52,50 @@ PUBLIC int sys_kill(pid_t pid, int sig)
 	if (pid > 0)
 	{
 		/* Search for process. */
-		for (p = FIRST_PROC; p <= LAST_PROC; p++)
-		{			
-			/* Skip invalid processes. */
-			if (!IS_VALID(p))
-				continue;
-		
-			/* Found. */
-			if (pid == p->pid)
-			{
-				err = -EPERM;
-				
-				if (AUTHORIZED(curr_proc, p, sig))
+		for(i = 0; i < 4; i++)
+			for (j = 0; j < PROC_MAX; j++){
+				p = &queues[i][j];	
+				/* Skip invalid processes. */
+				if (!IS_VALID(p))
+					continue;
+			
+				/* Found. */
+				if (pid == p->pid)
 				{
-					err = 0;
-					sndsig(p, sig);
+					err = -EPERM;
+					
+					if (AUTHORIZED(curr_proc, p, sig))
+					{
+						err = 0;
+						sndsig(p, sig);
+					}
 				}
 			}
-		}
 	}
 	
 	/* Send signal to process group. */
 	else if (pid == 0)
 	{
 		/* Search for processes. */
-		for (p = FIRST_PROC; p <= LAST_PROC; p++)
-		{			
-			/* Skip invalid processes. */
-			if (!IS_VALID(p))
-				continue;
-			
-			/* Found. */
-			if (curr_proc->pgrp == p->pgrp)
-			{
-				err = -EPERM;
-			
-				if (AUTHORIZED(curr_proc, p, sig))
+		for(i = 0; i < 4; i++)
+			for (j = 0; j < PROC_MAX; j++){
+				p = &queues[i][j];			
+				/* Skip invalid processes. */
+				if (!IS_VALID(p))
+					continue;
+				
+				/* Found. */
+				if (curr_proc->pgrp == p->pgrp)
 				{
-					err = 0;
-					sndsig(p, sig);
+					err = -EPERM;
+				
+					if (AUTHORIZED(curr_proc, p, sig))
+					{
+						err = 0;
+						sndsig(p, sig);
+					}
 				}
 			}
-		}
 	}
 	
 	/* Send signal to all processes. */
@@ -101,42 +104,44 @@ PUBLIC int sys_kill(pid_t pid, int sig)
 		err = -EPERM;
 		
 		/* Search for processes. */
-		for (p = FIRST_PROC; p <= LAST_PROC; p++)
-		{			
-			/* Skip invalid processes. */
-			if (!IS_VALID(p))
-				continue;
-			
-			if (AUTHORIZED(curr_proc, p, sig))
-			{
-				err = 0;
-				sndsig(p, sig);
-			}
-		}
-	}
-	
-	/* Send signal to absolute proces group. */
-	else
-	{
-		/* Search for processes. */
-		for (p = FIRST_PROC; p <= LAST_PROC; p++)
-		{
-			/* Skip invalid processes. */
-			if (!IS_VALID(p))
-				continue;
-			
-			/* Found. */
-			if (p->pgrp->pid == -pid)
-			{
-				err = -EPERM;
-			
+		for(i = 0; i < 4; i++)
+			for (j = 0; j < PROC_MAX; j++){
+				p = &queues[i][j];			
+				/* Skip invalid processes. */
+				if (!IS_VALID(p))
+					continue;
+				
 				if (AUTHORIZED(curr_proc, p, sig))
 				{
 					err = 0;
 					sndsig(p, sig);
 				}
 			}
-		}
+	}
+	
+	/* Send signal to absolute proces group. */
+	else
+	{
+		/* Search for processes. */
+		for(i = 0; i < 4; i++)
+			for (j = 0; j < PROC_MAX; j++){
+				p = &queues[i][j];	
+				/* Skip invalid processes. */
+				if (!IS_VALID(p))
+					continue;
+				
+				/* Found. */
+				if (p->pgrp->pid == -pid)
+				{
+					err = -EPERM;
+				
+					if (AUTHORIZED(curr_proc, p, sig))
+					{
+						err = 0;
+						sndsig(p, sig);
+					}
+				}
+			}
 	}
 	
 	return (err);

@@ -61,38 +61,42 @@ PUBLIC void die(int status)
 		cdev_close(curr_proc->tty);
 		
 	/* init adopts orphan processes. */
-	for (p = FIRST_PROC; p <= LAST_PROC; p++)
-	{
-		/* Skip invalid processes. */
-		if (!IS_VALID(p))
-			continue;
-		
-		if (shutting_down)
-			p->father = IDLE;
-		else if (p->father == curr_proc)
+	for(int i = 0; i < 4; i++)
+		for (int j = 0; j < PROC_MAX; j++)
 		{
-			p->father = INIT;
-			p->father->nchildren++;
-			sndsig(INIT, SIGCHLD);
-		}
-	}
-	
-	/* init adotps process in the same group. */
-	if (curr_proc->pgrp == curr_proc)
-	{
-		for (p = FIRST_PROC; p <= LAST_PROC; p++)
-		{
+			p = &queues[i][j];
 			/* Skip invalid processes. */
 			if (!IS_VALID(p))
 				continue;
 			
-			if (p->pgrp == curr_proc)
+			if (shutting_down)
+				p->father = IDLE;
+			else if (p->father == curr_proc)
 			{
-				p->pgrp = NULL;
-				sndsig(p, SIGHUP);
-				sndsig(p, SIGCONT);
+				p->father = INIT;
+				p->father->nchildren++;
+				sndsig(INIT, SIGCHLD);
 			}
 		}
+	
+	/* init adotps process in the same group. */
+	if (curr_proc->pgrp == curr_proc)
+	{
+		for(int i = 0; i < 4; i++)
+			for (int j = 0; j < PROC_MAX; j++)
+			{
+				p = &queues[i][j];
+				/* Skip invalid processes. */
+				if (!IS_VALID(p))
+					continue;
+				
+				if (p->pgrp == curr_proc)
+				{
+					p->pgrp = NULL;
+					sndsig(p, SIGHUP);
+					sndsig(p, SIGCONT);
+				}
+			}
 	}
 	
 	/* Detach process memory regions. */

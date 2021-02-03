@@ -31,7 +31,7 @@
  */
 PUBLIC pid_t sys_fork(void)
 {
-	int i;                /* Loop index.     */
+	int i, j;                /* Loop index.     */
 	int err;              /* Error?          */
 	struct process *proc; /* Process.        */
 	struct region *reg;   /* Memory region.  */
@@ -50,12 +50,13 @@ PUBLIC pid_t sys_fork(void)
 #endif
 
 	/* Search for a free process. */
-	for (proc = FIRST_PROC; proc <= LAST_PROC; proc++)
-	{
-		/* Found. */
-		if (!IS_VALID(proc))
-			goto found;
-	}
+	for(i = 0; i < 4; i++)
+		for (j = 0; j < PROC_MAX; j++){
+			proc = &queues[i][j];	
+			/* Found. */
+			if (!IS_VALID(proc))
+				goto found;
+		}
 
 	kprintf("process table overflow");
 	

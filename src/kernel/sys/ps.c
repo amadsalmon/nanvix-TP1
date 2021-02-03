@@ -99,46 +99,53 @@ PUBLIC int sys_ps()
 	states[6] = "STOPPED";
 
 	unsigned len = 0;
-	unsigned i;
+	unsigned i, j;
 	int size;
 
-	for (p = IDLE; p <= LAST_PROC; p++)
-	{
-		/* Skip invalid processes. */
-		if (!IS_VALID(p))
-			continue;
+	for(i = 0; i < 5; i++)
+		for (j = 0; j < PROC_MAX; j++){
+			if (i == 4)
+				p = IDLE;
+			else
+				p = &queues[i][j];	
+			/* Skip invalid processes. */
+			if (!IS_VALID(p))
+				continue;
 
-		/* Name */
-		size = kstrlen(p->name);
-		kstrcpy(name, p->name);
-		len = 20 - size;
+			/* Name */
+			size = kstrlen(p->name);
+			kstrcpy(name, p->name);
+			len = 20 - size;
 
-		for(i=size; i<len+size-1; i++)
-			*(name+i) = ' ';
+			for(i=size; i<len+size-1; i++)
+				*(name+i) = ' ';
 
-		*(name+i) = '\0';
+			*(name+i) = '\0';
 
-		/* Pid */
-		prepareValue(p->pid, pid, 6);
+			/* Pid */
+			prepareValue(p->pid, pid, 6);
 
-		/* Remaining Quantum */
-		prepareValue(p->uid, uid, 10);
+			/* Remaining Quantum */
+			prepareValue(p->uid, uid, 10);
 
-		/* Priority */
-		prepareValue(p->priority, priority, 11);
+			/* Priority */
+			prepareValue(p->priority, priority, 11);
 
-		/* Nice */
-		prepareValue(p->nice, nice, 7);
+			/* Nice */
+			prepareValue(p->nice, nice, 7);
 
-		/* Utime */
-		prepareValue(p->utime, utime, 8);
+			/* Utime */
+			prepareValue(p->utime, utime, 8);
 
-		/* Ktime */
-		prepareValue(p->ktime, ktime, 10);
+			/* Ktime */
+			prepareValue(p->ktime, ktime, 10);
+			
+			kprintf("%s%s%s%s%s%s%s%s",name, pid, 
+				uid, priority, nice, utime, ktime, states[(int)p->state] );
 		
-		kprintf("%s%s%s%s%s%s%s%s",name, pid, 
-			uid, priority, nice, utime, ktime, states[(int)p->state] );
-	}
+			if (i == 4)
+				break;
+		}
 
 	kprintf("\nLast process: %s, pid: %d\n",last_proc->name, last_proc->pid);
 	return 0;

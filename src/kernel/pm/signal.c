@@ -144,6 +144,7 @@ PUBLIC void sndsig(struct process *proc, int sig)
 PUBLIC int issig(void)
 {
 	int ret;
+	struct process *p;
 	
 	ret = SIGNULL;
 	
@@ -183,9 +184,11 @@ PUBLIC int issig(void)
 				curr_proc->received &= ~(1 << i);
 			
 				/* Bury zombie child processes. */
-				for (struct process *p = FIRST_PROC; p <= LAST_PROC; p++)
-				{
-					if ((p->father == curr_proc) && (p->state==PROC_ZOMBIE))
+				for(int i = 0; i < 4; i++)
+					for (int j = 0; j < PROC_MAX; j++)
+					{
+						p = &queues[i][j];
+						if ((p->father == curr_proc) && (p->state==PROC_ZOMBIE))
 						bury(p);
 				}
 				
