@@ -346,7 +346,6 @@ static int sched_test2(void)
  */
 static int sched_test3(void)
 {
-	printf("Beginning sched_test3\n");
 	pid_t child;
 	pid_t father;
 
@@ -365,7 +364,6 @@ static int sched_test3(void)
 	if (getpid() != father)
 		_exit(EXIT_SUCCESS);
 
-	printf("Ending sched_test3\n");
 	return (0);
 }
 

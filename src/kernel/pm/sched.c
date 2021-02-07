@@ -66,7 +66,7 @@ PUBLIC void yield(void)
 {
 	struct process *p;    /* Working process.     */
 	struct process *next; /* Next process to run. */
-	int n_process = 0;
+	int tickets = 0;
 
 	/* Re-schedule process for execution. */
 	if (curr_proc->state == PROC_RUNNING)
@@ -95,12 +95,11 @@ PUBLIC void yield(void)
 		if (p->state != PROC_READY)
 			continue;
 		
-		n_process++;
+		tickets += p->nice + p->priority + p->counter;
 	}
 
-	if (n_process != 0){
-		int winner_lottery = (ticks % n_process) + 1;
-		int i = 0;
+	if (tickets != 0){
+		int winner = (ticks % tickets) + 1;
 		for (p = FIRST_PROC; p <= LAST_PROC; p++)
 		{
 			/* Skip non-ready process. */
@@ -108,11 +107,10 @@ PUBLIC void yield(void)
 				continue;
 			
 			next = p;
+			winner -= p->nice + p->priority + p->counter;
 
-			if(i == winner_lottery)
+			if(winner <= 0)
 				break;
-
-			i++;
 		}
 	}
 
