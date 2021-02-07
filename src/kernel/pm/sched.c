@@ -25,59 +25,6 @@
 #include <nanvix/pm.h>
 #include <signal.h>
 
-
-PUBLIC void copyProc(struct process *src, struct process *dst){
-	int i;
-	dst->kesp = src->kesp;
-	dst->cr3 = src->cr3;
-	dst->intlvl = src->intlvl;
-	dst->flags = src->flags;
-	dst->received = src->received;
-	dst->kstack = src->kstack;
-	dst->restorer = src->restorer;
-	for (i = 0; i < NR_SIGNALS; i++)
-		dst->handlers[i] = src->handlers[i];
-	dst->irqlvl = src->irqlvl;
-	dst->fss = src->fss;
-	dst->pgdir = src->pgdir;
-	for (i = 0; i < NR_PREGIONS; i++)
-		dst->pregs[i].reg = src->pregs[i].reg;
-	dst->size = src->size;
-	for (i = 0; i < NR_PREGIONS; i++)
-		dst->ofiles[i] = src->ofiles[i];
-	dst->pwd = src->pwd;
-	dst->root = src->root;
-	for(i = 0; i < OPEN_MAX; i++)
-		dst->ofiles[i] = src->ofiles[i];
-	dst->close = src->close;
-	dst->umask = src->umask;
-	dst->tty = src->tty;
-	dst->status = src->status;
-	dst->errno = src->errno;
-	dst->nchildren = src->nchildren;
-	dst->uid = src->uid;
-	dst->euid = src->euid;
-	dst->suid = src->suid;
-	dst->gid = src->gid;
-	dst->egid = src->egid;
-	dst->sgid = src->sgid;
-	dst->pid = src->pid;
-	dst->pgrp = src->pgrp;
-	dst->father = src->father;
-	kstrncpy(dst->name, src->name, NAME_MAX);
-	dst->utime = src->utime;
-	dst->ktime = src->ktime;
-	dst->cutime = src->cutime;
-	dst->cktime = src->cktime;
-	dst->state = src->state;
-	dst->counter = src->counter;
-	dst->priority = src->priority;
-	dst->nice = src->nice;
-	dst->alarm = src->alarm;
-	dst->next = src->next;
-	dst->chain = src->chain;
-}
-
 PUBLIC void changeQueue(struct process *proc, int from, int to){
 	struct process* p;
 
@@ -192,21 +139,6 @@ PUBLIC void yield(void)
 
 			if(p->state != PROC_READY)
 				continue;
-
-			switch(queue){
-				case FIRST_QUEUE:
-					nq1++;
-					break;
-				case SECOND_QUEUE:
-					nq2++;
-					break;
-				case THIRD_QUEUE:
-					nq3++;
-					break;
-				default:
-					nq4++;
-					break;
-			}
 
 			/*
 				Update the process queue position
