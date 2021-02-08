@@ -66,7 +66,7 @@ PUBLIC void yield(void)
 {
 	struct process *p;    /* Working process.     */
 	struct process *next; /* Next process to run. */
-	int priority = PRIO_IO;
+	int priority = -1;
 
 	/* Re-schedule process for execution. */
 	if (curr_proc->state == PROC_RUNNING)
@@ -95,14 +95,17 @@ PUBLIC void yield(void)
 		if (p->state != PROC_READY)
 			continue;
 		
-		/*
-		 * Process with higher
-		 * waiting time found.
-		 */
-		if (p->priority > priority){
+		if(priority == -1){
+			priority = p->counter + p->nice;
 			next = p;
-			priority = p->priority;
 		}
+
+
+		if (p->counter + p->nice > priority){
+			next = p;
+		}
+
+		p->counter++;
 	}
 	
 	/* Switch to next process. */
